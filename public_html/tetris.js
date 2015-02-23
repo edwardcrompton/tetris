@@ -35,13 +35,12 @@ var tetrino = function() {
   this.shapeCoors = this.shapeConfig[this.shapeRotation];
   
   this.xPos = 0;
+  this.yPos = 0;
   
   // Create a new graphics object
   this.graphics = new PIXI.Graphics();
   
-  var distanceDropped = 0;
-  
-  this.makeShape = function(distanceDropped) {
+  this.makeShape = function() {
     this.graphics.clear();
     // Loop through the coordinates of this shape and draw it.
     for (index = 0; index < this.shapeCoors.length; ++index) {
@@ -53,7 +52,7 @@ var tetrino = function() {
       this.graphics.beginFill(0x00FF00);
       this.graphics.drawRect(
         stageOrigin[0] + cellOrigin[0] + this.xPos, 
-        stageOrigin[1] + cellOrigin[1] + distanceDropped,
+        stageOrigin[1] + cellOrigin[1] + this.yPos,
         cellSide, 
         cellSide
       );
@@ -62,8 +61,8 @@ var tetrino = function() {
     this.graphics.endFill();
   }
   
-  this.fall = function (distanceDropped) {
-    this.makeShape(distanceDropped);
+  this.fall = function () {
+    this.makeShape();
     
     stage.addChild(piece.graphics);
 
@@ -71,8 +70,9 @@ var tetrino = function() {
     
     var t = this;
     setTimeout(function () {
-      if (distanceDropped <= 240) {
-        t.fall(distanceDropped + this.cellSide);
+      if (t.yPos <= 240) {
+        t.yPos += cellSide;
+        t.fall();
       }
     }, timeOutInterval);
   }
@@ -81,24 +81,22 @@ var tetrino = function() {
 // Add the renderer view element to the DOM
 document.body.appendChild(renderer.view);
 
+// Create a new tetris piece.
 var piece = new tetrino();
+// Start its fall from the top of the stage.
 piece.fall(0);
 
-// It would be neater if all the game initialisation stuff could be done inside
-// a separate function?
-// Then we'd have a loop that re-renders the shape as it falls.
-// And an event listener that would listen for left, right and rotation presses.
-
-// Add an event listener here to listen for left, right, space etc.
-// Listen out for left and right key presses.
+// Event listener to listen for left, right, space keypresses.
 window.addEventListener('keydown', function(event) {
   switch (event.keyCode) {
     case 37: // Left
       piece.xPos -= cellSide;
+      piece.fall(0);
       console.log(piece.xPos);
       break;
-    case 39: // Left
+    case 39: // Right
       piece.xPos += cellSide;
+      piece.fall(0);
       console.log(piece.xPos);
       break;
   }
