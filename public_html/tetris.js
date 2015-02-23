@@ -4,12 +4,17 @@
  * and open the template in the editor.
  */
 
-var stageWidth = 640;
-var stageHeight = 480;
+var LEFT = 1;
+var RIGHT = 2;
+var BOTTOM = 3;
+
+var cellSide = 24;
+
+var stageWidth = cellSide * 18;
+var stageHeight = cellSide * 24;
+
 var stageOrigin = [0,0];
 var timeOutInterval = 500;
-
-this.cellSide = 25;
 
 var tetrinosConfig = [
   [
@@ -70,12 +75,75 @@ var tetrino = function() {
     
     var t = this;
     setTimeout(function () {
-      if (t.yPos <= 240) {
+      origPos = t.yPos;
+      if (!t.touchingEdge(BOTTOM)) {
         t.yPos += cellSide;
         t.fall();
       }
+      else {
+        t.yPos = origPos;
+      }
     }, timeOutInterval);
   }
+  
+  this.touchingEdge = function (edge) {
+    var cell = getEdgeCell(this.shapeCoors, edge);
+    switch (edge) {
+      case RIGHT:
+        // Get the rightmost cell.
+        if (stageOrigin[0] + this.xPos + (cell * cellSide) > stageWidth + stageOrigin[0]) {
+          return true;
+        }
+        break;
+      case LEFT:
+        if (stageOrigin[0] + this.xPos + (cell * cellSide) < stageOrigin[0]) {
+          return true;
+        }
+        break;
+      case BOTTOM:
+        if (stageOrigin[1] + this.yPos + (cell * cellSide) > stageHeight + stageOrigin[1]) {
+          return true;
+        }
+        break;
+      default:
+        return false;
+    }
+  }
+}
+
+function getEdgeCell(coordinates, edge) {
+  var extremity = coordinates[0][0];
+  
+  switch (edge) {
+    case RIGHT:
+      var indeces = 0;
+      var comparison = 1;
+      break;
+    case LEFT:
+      var indeces = 0;
+      var comparison = -1;
+      break;
+    case BOTTOM:
+      var indeces = 1;
+      var comparison = 1;
+      break;
+  }
+  
+  // Look through the list of coordinates and find which is the most extreme in 
+  // the direction we are looking for.
+  for (index = 0; index < coordinates.length; ++index) {
+    if (extremity * (comparison) < coordinates[index][indeces] * (comparison)) {
+      extremity = coordinates[index][indeces];
+    }
+  }
+  
+  // If we're looking to see if the right edge is touching, we need to check the
+  // right edge of the cell, not the left.
+  if (edge == RIGHT || edge == BOTTOM) {
+    extremity += 1;
+  }
+  
+  return extremity;
 }
 
 // Add the renderer view element to the DOM
@@ -88,16 +156,24 @@ piece.fall(0);
 
 // Event listener to listen for left, right, space keypresses.
 window.addEventListener('keydown', function(event) {
+  origPos = piece.xPos;
+  
   switch (event.keyCode) {
     case 37: // Left
       piece.xPos -= cellSide;
-      piece.fall(0);
-      console.log(piece.xPos);
+      edge = LEFT;
       break;
     case 39: // Right
       piece.xPos += cellSide;
-      piece.fall(0);
-      console.log(piece.xPos);
+      edge = RIGHT;
       break;
   }
+  
+  if (!piece.touchingEdge(edge)) {
+    piece.fall(0);
+  }
+  else {
+    piece.xPos = origPos;
+  }
+  
 }, false);
