@@ -56,6 +56,22 @@ var gameGrid = function() {
     // Save the origin of the shape for next time.
     this.oldActiveShapeCoors = [x, y];
   }
+  
+  this.moveAllowed = function (x, y, shapeCoors) {
+    for (i = 0; i < shapeCoors.length; i++) {
+      requestedX = stageOrigin[0] + x + shapeCoors[i][0];
+      requestedY = stageOrigin[1] + y + shapeCoors[i][1];
+      
+      // Things that tell us immediately this move cannot be made.
+      if (requestedX > gridCols || requestedX < 0) {
+        return false;
+      }
+      if (requestedY > gridRows || requestedY < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 var tetrino = function() {
@@ -97,10 +113,10 @@ var tetrino = function() {
   this.fall = function () {
     this.makeShape();
     
-    stage.addChild(piece.graphics);
+    stage.addChild(this.graphics);
 
     // Update the shape on the grid.
-    grid.moveActiveShape(piece.x, piece.y, piece.shapeCoors);
+    grid.moveActiveShape(this.x, this.y, this.shapeCoors);
 
     renderer.render(stage);
     
@@ -111,28 +127,15 @@ var tetrino = function() {
     }, timeOutInterval);
   }
   
-  this.touchingEdge = function (edge) {
-    var cell = getEdgeCell(this.shapeCoors, edge);
-    switch (edge) {
-      case RIGHT:
-        // Get the rightmost cell.
-        if (stageOrigin[0] + this.xPos + (cell * cellSide) > stageWidth + stageOrigin[0]) {
-          return true;
-        }
-        break;
-      case LEFT:
-        if (stageOrigin[0] + this.xPos + (cell * cellSide) < stageOrigin[0]) {
-          return true;
-        }
-        break;
-      case BOTTOM:
-        if (stageOrigin[1] + this.yPos + (cell * cellSide) > stageHeight + stageOrigin[1]) {
-          return true;
-        }
-        break;
-      default:
-        return false;
-    }
+  this.slide = function () {
+    this.makeShape();
+    
+    stage.addChild(this.graphics);
+
+    // Update the shape on the grid.
+    grid.moveActiveShape(this.x, this.y, this.shapeCoors);
+
+    renderer.render(stage);
   }
 }
 
@@ -148,41 +151,6 @@ function createArray(cols, rows) {
   return a;
 }
 
-function getEdgeCell(coordinates, edge) {
-  var extremity = coordinates[0][0];
-  
-  switch (edge) {
-    case RIGHT:
-      var indeces = 0;
-      var comparison = 1;
-      break;
-    case LEFT:
-      var indeces = 0;
-      var comparison = -1;
-      break;
-    case BOTTOM:
-      var indeces = 1;
-      var comparison = 1;
-      break;
-  }
-  
-  // Look through the list of coordinates and find which is the most extreme in 
-  // the direction we are looking for.
-  for (index = 0; index < coordinates.length; ++index) {
-    if (extremity * (comparison) < coordinates[index][indeces] * (comparison)) {
-      extremity = coordinates[index][indeces];
-    }
-  }
-  
-  // If we're looking to see if the right edge is touching, we need to check the
-  // right edge of the cell, not the left.
-  if (edge == RIGHT || edge == BOTTOM) {
-    extremity += 1;
-  }
-  
-  return extremity;
-}
-
 // Add the renderer view element to the DOM
 document.body.appendChild(renderer.view);
 
@@ -190,39 +158,33 @@ document.body.appendChild(renderer.view);
 var grid = new gameGrid();
 // Create a new tetris piece.
 var piece = new tetrino();
-// Start its fall from the top of the stage.
-piece.fall(0);
+
 // Add the new piece to the grid.
 grid.initialiseActiveShape(piece.shapeCoors);
 
-console.log(grid.grid);
+// Start its fall from the top of the stage.
+piece.fall();
 
 // Event listener to listen for left, right, space keypresses.
 window.addEventListener('keydown', function(event) {
-  origPos = piece.xPos;
-  
   switch (event.keyCode) {
     case 37: // Left
-      piece.xPos -= cellSide;
-      edge = LEFT;
+      if (grid.moveAllowed(piece.x - 1, piece.y, piece.shapeCoors)) {
+        piece.x -= 1;
+      }
       break;
     case 39: // Right
-      piece.xPos += cellSide;
-      edge = RIGHT;
+      if (grid.moveAllowed(piece.x + 1, piece.y, piece.shapeCoors)) {
+        piece.x += 1;
+      }
       break;
   }
   
-  if (!piece.touchingEdge(edge)) {
-    piece.fall(0);
-  }
-  else {
-    piece.xPos = origPos;
-  }
+  piece.slide();
   
 }, false);
 
-// Need to work out why the shape is sinking one level below the bottom of the
-// stage.
-// Also, after left and right keys have been pressed, movement speeds up.
+// The grid based rules are working to stop the shape disappearing off the left
+// of the screen, but not the right.
 // Implement functionality for the space bar so that we can twist the shape.
 // Comment the functions and methods.
