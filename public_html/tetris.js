@@ -63,10 +63,10 @@ var gameGrid = function() {
       requestedY = stageOrigin[1] + y + shapeCoors[i][1];
       
       // Things that tell us immediately this move cannot be made.
-      if (requestedX > gridCols || requestedX < 0) {
+      if (requestedX >= gridCols || requestedX < 0) {
         return false;
       }
-      if (requestedY > gridRows || requestedY < 0) {
+      if (requestedY >= gridRows || requestedY < 0) {
         return false;
       }
     }
@@ -88,6 +88,14 @@ var tetrino = function() {
   
   // Create a new graphics object
   this.graphics = new PIXI.Graphics();
+  
+  this.rotateShape = function() {
+    this.shapeRotation++;
+    if (this.shapeRotation >= this.shapeConfig.length) {
+      this.shapeRotation = 0;
+    }
+    this.shapeCoors = this.shapeConfig[this.shapeRotation];
+  }
   
   this.makeShape = function() {
     this.graphics.clear();
@@ -178,6 +186,8 @@ window.addEventListener('keydown', function(event) {
         piece.x += 1;
       }
       break;
+    case 32: // Spacebar
+      piece.rotateShape();
   }
   
   piece.slide();
