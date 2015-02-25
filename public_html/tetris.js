@@ -1,9 +1,3 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Defines a game object that will be used to control the global actions in the
  * game.
@@ -15,10 +9,11 @@ var game = function() {
 
   var ACTIVE = 1;
   var FOSSIL = 2;
+  var EMPTY = 0;
 
   var cellSide = 24;
   var gridCols = 18;
-  var gridRows = 24;
+  var gridRows = 10;//24;
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
@@ -61,7 +56,7 @@ var game = function() {
 
     for (x = 0; x < cols; x++) {
       a[x] = new Array();
-      for (y = 0; y < cols; y++) {
+      for (y = 0; y < rows; y++) {
         a[x][y] = 0;
       }
     }
@@ -76,7 +71,7 @@ var game = function() {
   var gameGrid = function() {  
     // Initialise the grid.
     this.grid = createArray(gridCols, gridRows);
-    this.oldActiveShapeCoors = new Array(0, 0);
+    this.oldShapeCoors = new Array();
 
     /**
      * Create a new shape on the grid.
@@ -89,6 +84,11 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         this.grid[stageOrigin[0] + shapeCoors[i][0]][stageOrigin[1] + shapeCoors[i][1]] = 1;
       }
+      // Save the old shape coordinates. They will change if the shape
+      // rotates.
+      this.oldShapeCoors = shapeCoors;
+      // Reset the current origin of the shape to zero.
+      this.oldActiveShapeOrigin = new Array(0, 0);
     }
 
     /**
@@ -101,15 +101,26 @@ var game = function() {
      * @param {Array} shapeCoors
      *  The new coordinates of the shape relative to the origin.
      */
-    this.moveActiveShape = function (x, y, shapeCoors) {
+    this.moveActiveShape = function (x, y, shapeCoors) {      
+      // Wipe the old position of the active shape.
       for (i = 0; i < shapeCoors.length; i++) {
-        // Wipe the old position of the active shape.
-        this.grid[stageOrigin[0] + this.oldActiveShapeCoors[0] + shapeCoors[i][0]][stageOrigin[1] + this.oldActiveShapeCoors[0] + shapeCoors[i][1]] = 0;
-        // Map the active shape on to the grid in its new position.
-        this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = ACTIVE;
+        oldX = stageOrigin[0] + this.oldActiveShapeOrigin[0] + this.oldShapeCoors[i][0]
+        oldY = stageOrigin[1] + this.oldActiveShapeOrigin[1] + this.oldShapeCoors[i][1]
+        this.grid[oldX][oldY] = EMPTY;
       }
-      // Save the origin of the shape for next time.
-      this.oldActiveShapeCoors = [x, y];
+      
+      // We require two separate loops here. Otherwise the new positions get
+      // overwritten if they are in the same place as old positions.
+      
+      // Map the active shape on to the grid in its new position.
+      for (i = 0; i < shapeCoors.length; i++) {
+        newX = stageOrigin[0] + x + shapeCoors[i][0];
+        newY = stageOrigin[1] + y + shapeCoors[i][1];
+        this.grid[newX][newY] = ACTIVE;
+      }
+      // Save the origin and coordinates of the shape for next time.
+      this.oldActiveShapeOrigin = [x, y];
+      this.oldShapeCoors = shapeCoors;
     }
 
     /**
@@ -125,7 +136,11 @@ var game = function() {
     this.fossiliseActiveShape = function (x, y, shapeCoors) {
       // Fossilise the shape by changing the values on its coordiates in the grid
       // to FOSSIL (2) rather than ACTIVE (1).
-      this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
+      for (i = 0; i < shapeCoors.length; i++) {
+        this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
+      }
+      // We also need to reset the old shape coors.
+      
     }
 
     /**
@@ -144,8 +159,8 @@ var game = function() {
      */
     this.moveAllowed = function (x, y, shapeCoors) {
       for (i = 0; i < shapeCoors.length; i++) {
-        requestedX = stageOrigin[0] + x + shapeCoors[i][0];
-        requestedY = stageOrigin[1] + y + shapeCoors[i][1];
+        var requestedX = stageOrigin[0] + x + shapeCoors[i][0];
+        var requestedY = stageOrigin[1] + y + shapeCoors[i][1];
 
         // Things that tell us immediately this move cannot be made.
         if (requestedX >= gridCols || requestedX < 0) {
@@ -154,8 +169,26 @@ var game = function() {
         if (requestedY >= gridRows || requestedY < 0) {
           return false;
         }
+        
+        // Look at the grid to see if the coordinates are already taken up by
+        // a fossilised shape.
+        // There's a problem here. It looks as though the grid has already been
+        // updated byt he time we get to this point.
+        if (this.grid[requestedX, requestedY] == FOSSIL) {
+          return false;
+        }
       }
       return true;
+    }
+    
+    this.debugShowGrid = function() {
+      var row = '';
+      var cols = '';
+      for (y = 0; y < gridRows; y++) {
+        for (x = 0; x < gridCols; x++) {
+          console.log(this.grid[x, y]);
+        }
+      }
     }
   }
 
@@ -337,6 +370,11 @@ var game = function() {
 // Start the game.
 var g = new game();
 
+
+// When moveAllowed gets called on 279, the grid seems already to have updated
+// so that move allowed is looking at the active shape even if its ALREADY on top
+// of a fossil shape.
+// 
 // Add in some new checks to ensure that shape stack on top of each other.
 // The moveAllowed method must look for the other fossils on the board.
 // Introduce some different shapes and colours.
