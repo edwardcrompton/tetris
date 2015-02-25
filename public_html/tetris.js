@@ -4,48 +4,83 @@
  * and open the template in the editor.
  */
 
-var LEFT = 1;
-var RIGHT = 2;
-var BOTTOM = 3;
-
-var ACTIVE = 1;
-var FOSSIL = 2;
-
-var cellSide = 24;
-var gridCols = 18;
-var gridRows = 24;
-
-var stageOrigin = [0,0];
-var timeOutInterval = 500;
-
-var tetrinosConfig = [
-  [
-    [[0,0],[1,0],[2,0],[2,1]], // First shape, first rotation.
-    [[1,0],[1,1],[0,2],[1,2]], // First shape, second rotation.
-    [[0,0],[0,1],[1,1],[2,1]], // First shape, third rotation.
-    [[1,0],[2,0],[1,1],[1,2]], // First shape, fourth rotation.
-  ]
-];
-
-// Create an new instance of a pixi stage
-var stage = new PIXI.Stage(0x000000);
-
-// Stage dimensions.
-var stageWidth = cellSide * gridCols;
-var stageHeight = cellSide * gridRows;
-
-// Create a renderer instance.
-var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
-
 /**
- * Handles game functionality.
+ * Defines a game object that will be used to control the global actions in the
+ * game.
  */
 var game = function() {
+  var LEFT = 1;
+  var RIGHT = 2;
+  var BOTTOM = 3;
+
+  var ACTIVE = 1;
+  var FOSSIL = 2;
+
+  var cellSide = 24;
+  var gridCols = 18;
+  var gridRows = 24;
+
+  var stageOrigin = [0,0];
+  var timeOutInterval = 500;
+
+  var tetrinosConfig = [
+    [
+      [[0,0],[1,0],[2,0],[2,1]], // First shape, first rotation.
+      [[1,0],[1,1],[0,2],[1,2]], // First shape, second rotation.
+      [[0,0],[0,1],[1,1],[2,1]], // First shape, third rotation.
+      [[1,0],[2,0],[1,1],[1,2]], // First shape, fourth rotation.
+    ]
+  ];
+
+  // Create an new instance of a pixi stage
+  var stage = new PIXI.Stage(0x000000);
+
+  // Stage dimensions.
+  var stageWidth = cellSide * gridCols;
+  var stageHeight = cellSide * gridRows;
+
+  // Create a renderer instance.
+  var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+
+  // Add the renderer view element to the DOM
+  document.body.appendChild(renderer.view);
+
+  // Create the grid that will hold the pieces.
+  var grid = new gameGrid();
+
+  // Create a new tetris piece.
+  var piece = new tetrino();
+
+  // Add the new piece to the grid.
+  grid.initialiseActiveShape(piece.shapeCoors);
+
+  // Start its fall from the top of the stage.
+  piece.fall(grid);
+  
   /**
-   * Initialises the Shape.
-   */
-  this.initialiseShape = function() {
+  * Initialises a two dimensional array of specified dimensions.
+  * 
+  * @param {integer} cols
+  *  The number of columns in the array.
+  * @param {integer} rows
+  *  The number of rows in the array.
+  * 
+  * @returns {Array}
+  *  An array initialised with zeros.
+  */
+ function createArray(cols, rows) {
+   var a = new Array();
+
+   for (x = 0; x < cols; x++) {
+     a[x] = new Array();
+     for (y = 0; y < cols; y++) {
+       a[x][y] = 0;
+     }
+   }
+   return a;
   }
+  
+  
 }
 
 /**
@@ -257,43 +292,8 @@ var tetrino = function() {
   }
 }
 
-/**
- * Initialises a two dimensional array of specified dimensions.
- * 
- * @param {integer} cols
- *  The number of columns in the array.
- * @param {integer} rows
- *  The number of rows in the array.
- * 
- * @returns {Array}
- *  An array initialised with zeros.
- */
-function createArray(cols, rows) {
-  var a = new Array();
-
-  for (x = 0; x < cols; x++) {
-    a[x] = new Array();
-    for (y = 0; y < cols; y++) {
-      a[x][y] = 0;
-    }
-  }
-  return a;
-}
-
-// Add the renderer view element to the DOM
-document.body.appendChild(renderer.view);
-
-// Create the grid that will hold the pieces.
-var grid = new gameGrid();
-
-// Create a new tetris piece.
-var piece = new tetrino();
-
-// Add the new piece to the grid.
-grid.initialiseActiveShape(piece.shapeCoors);
-
-// Start its fall from the top of the stage.
-piece.fall(grid);
+// Start the game.
+var g = new game();
 
 // Event listener to listen for left, right, space keypresses.
 window.addEventListener('keydown', function(event) {
@@ -329,8 +329,3 @@ window.addEventListener('keydown', function(event) {
   piece.slide();
   
 }, false);
-
-// Work out a way to loop when a piece is fossilised. At the moment I think we
-// need some sort of container for the whole game which allows this to happen.
-// Turn the shape into a fossil when it reaches the bottom of the grid - can no 
-// longer move.
