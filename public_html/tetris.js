@@ -8,6 +8,9 @@ var LEFT = 1;
 var RIGHT = 2;
 var BOTTOM = 3;
 
+var ACTIVE = 1;
+var FOSSIL = 2;
+
 var cellSide = 24;
 var gridCols = 18;
 var gridRows = 24;
@@ -33,6 +36,17 @@ var stageHeight = cellSide * gridRows;
 
 // Create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+
+/**
+ * Handles game functionality.
+ */
+var game = function() {
+  /**
+   * Initialises the Shape.
+   */
+  this.initialiseShape = function() {
+  }
+}
 
 /**
  * Defines a class used to create the grid on which the game is played.
@@ -72,10 +86,26 @@ var gameGrid = function() {
       // Wipe the old position of the active shape.
       this.grid[stageOrigin[0] + this.oldActiveShapeCoors[0] + shapeCoors[i][0]][stageOrigin[1] + this.oldActiveShapeCoors[0] + shapeCoors[i][1]] = 0;
       // Map the active shape on to the grid in its new position.
-      this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = 1;
+      this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = ACTIVE;
     }
     // Save the origin of the shape for next time.
     this.oldActiveShapeCoors = [x, y];
+  }
+  
+  /**
+   * Fossilises an active shape on the grid when it can no longer move.
+   * 
+   * @param {Integer} x
+   *  The new x origin of the shape.
+   * @param {Integer} y
+   *  The new y origin of the shape.
+   * @param {Array} shapeCoors
+   *  The new coordinates of the shape relative to the origin.
+   */
+  this.fossiliseActiveShape = function (x, y, shapeCoors) {
+    // Fossilise the shape by changing the values on its coordiates in the grid
+    // to FOSSIL (2) rather than ACTIVE (1).
+    this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
   }
   
   /**
@@ -147,7 +177,7 @@ var tetrino = function() {
   /**
    * Rotates the shape by one step as defined in the shapeCoors array.
    */
-  this.rotateShape = function() {
+  this.rotate = function() {
     this.shapeRotation = this.incrementRotation(this.shapeRotation);
     this.shapeCoors = this.shapeConfig[this.shapeRotation];
   }
@@ -155,7 +185,7 @@ var tetrino = function() {
   /**
    * Renders the shape on the stage.
    */
-  this.renderShape = function() {
+  this.render = function() {
     this.graphics.clear();
     // Loop through the coordinates of this shape and draw it.
     for (index = 0; index < this.shapeCoors.length; ++index) {
@@ -181,7 +211,7 @@ var tetrino = function() {
    * Moves the shape down the stage at intervals, updating the grid each time.
    */
   this.fall = function (grid) {
-    this.renderShape();
+    this.render();
     
     stage.addChild(this.graphics);
 
@@ -197,6 +227,9 @@ var tetrino = function() {
         t.y += 1;
         t.fall(grid);
       }
+      else {
+        t.fix(grid);
+      }
     }, timeOutInterval);
   }
   
@@ -205,7 +238,7 @@ var tetrino = function() {
    * the grid.
    */
   this.slide = function () {
-    this.renderShape();
+    this.render();
     
     stage.addChild(this.graphics);
 
@@ -213,6 +246,14 @@ var tetrino = function() {
     grid.moveActiveShape(this.x, this.y, this.shapeCoors);
 
     renderer.render(stage);
+  }
+  
+  /**
+   * Handles what happens to an active shape when it cannot move down any further.
+   */
+  this.fix = function(grid) {
+    // Fossilise the shape on the grid.
+    grid.fossiliseActiveShape(this.x, this.y, this.shapeCoors);
   }
 }
 
@@ -244,6 +285,7 @@ document.body.appendChild(renderer.view);
 
 // Create the grid that will hold the pieces.
 var grid = new gameGrid();
+
 // Create a new tetris piece.
 var piece = new tetrino();
 
@@ -266,6 +308,11 @@ window.addEventListener('keydown', function(event) {
         piece.x += 1;
       }
       break;
+    case 40: // Down (accelerate).
+      if (grid.moveAllowed(piece.x, piece.y + 1, piece.shapeCoors)) {
+        piece.y += 1;
+      }
+      break;
     case 32: // Spacebar
       // We need to get the shapecoors and rotate them without actually rotating
       // the shape here. Then pass them to the moveAllowed function to make sure 
@@ -274,7 +321,7 @@ window.addEventListener('keydown', function(event) {
       shapeCoors = piece.shapeConfig[shapeRotation];
       
       if (grid.moveAllowed(piece.x, piece.y, shapeCoors)) {
-        piece.rotateShape();
+        piece.rotate();
       }
   }
   
@@ -282,3 +329,8 @@ window.addEventListener('keydown', function(event) {
   piece.slide();
   
 }, false);
+
+// Work out a way to loop when a piece is fossilised. At the moment I think we
+// need some sort of container for the whole game which allows this to happen.
+// Turn the shape into a fossil when it reaches the bottom of the grid - can no 
+// longer move.
