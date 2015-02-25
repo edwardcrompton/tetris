@@ -337,3 +337,6 @@ var game = function() {
 // Start the game.
 var g = new game();
 
+// Add in some new checks to ensure that shape stack on top of each other.
+// The moveAllowed method must look for the other fossils on the board.
+// Introduce some different shapes and colours.
