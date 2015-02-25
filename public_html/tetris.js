@@ -180,7 +180,7 @@ var tetrino = function() {
   /**
    * Moves the shape down the stage at intervals, updating the grid each time.
    */
-  this.fall = function () {
+  this.fall = function (grid) {
     this.renderShape();
     
     stage.addChild(this.graphics);
@@ -192,13 +192,17 @@ var tetrino = function() {
     
     var t = this;
     setTimeout(function () {
-      t.y += 1;
-      t.fall();
+      // Check that the shape can 'fall'.
+      if (grid.moveAllowed(t.x, t.y + 1, t.shapeCoors)) {
+        t.y += 1;
+        t.fall(grid);
+      }
     }, timeOutInterval);
   }
   
   /**
-   * Re-draws the shape at a position slid left or right and updates the grid.
+   * Re-draws the shape at a position slid left or right or rotated and updates 
+   * the grid.
    */
   this.slide = function () {
     this.renderShape();
@@ -247,7 +251,7 @@ var piece = new tetrino();
 grid.initialiseActiveShape(piece.shapeCoors);
 
 // Start its fall from the top of the stage.
-piece.fall();
+piece.fall(grid);
 
 // Event listener to listen for left, right, space keypresses.
 window.addEventListener('keydown', function(event) {
@@ -274,6 +278,7 @@ window.addEventListener('keydown', function(event) {
       }
   }
   
+  // Update the rendered shape and the game grid.
   piece.slide();
   
 }, false);
