@@ -274,20 +274,29 @@ var game = function() {
     this.fix = function(grid) {
       // Fossilise the shape on the grid.
       grid.fossiliseActiveShape(this.x, this.y, this.shapeCoors);
+      // Drops a new piece.
+      dropPiece();
     }
+  }
+  
+  /**
+   * Creates and initialises a new piece in the game.
+   */
+  function dropPiece() {
+    // Create a new tetris piece.
+    this.piece = new tetrino();
+
+    // Add the new piece to the grid.
+    grid.initialiseActiveShape(piece.shapeCoors);
+
+    // Start its fall from the top of the stage.
+    piece.fall(grid);
   }
   
   // Create the grid that will hold the pieces.
   var grid = new gameGrid();
-
-  // Create a new tetris piece.
-  var piece = new tetrino();
-
-  // Add the new piece to the grid.
-  grid.initialiseActiveShape(piece.shapeCoors);
-
-  // Start its fall from the top of the stage.
-  piece.fall(grid);
+  // Drop a new piece into to the game.
+  dropPiece();
 
   // Event listener to listen for left, right, space keypresses.
   window.addEventListener('keydown', function(event) {
