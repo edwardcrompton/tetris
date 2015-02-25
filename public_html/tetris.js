@@ -34,11 +34,22 @@ var stageHeight = cellSide * gridRows;
 // Create a renderer instance.
 var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
 
+/**
+ * Defines a class used to create the grid on which the game is played.
+ * 
+ * @returns {gameGrid}
+ */
 var gameGrid = function() {  
   // Initialise the grid.
   this.grid = createArray(gridCols, gridRows);
   this.oldActiveShapeCoors = new Array(0, 0);
   
+  /**
+   * Create a new shape on the grid.
+   * 
+   * @param {Array} shapeCoors
+   *  The coordinates of the shape relative to its origin.
+   */
   this.initialiseActiveShape = function (shapeCoors) {
     // Map the active shape on to the grid.
     for (i = 0; i < shapeCoors.length; i++) {
@@ -46,6 +57,16 @@ var gameGrid = function() {
     }
   }
   
+  /**
+   * Moves an active shape on the grid.
+   * 
+   * @param {Integer} x
+   *  The new x origin of the shape.
+   * @param {Integer} y
+   *  The new y origin of the shape.
+   * @param {Array} shapeCoors
+   *  The new coordinates of the shape relative to the origin.
+   */
   this.moveActiveShape = function (x, y, shapeCoors) {
     for (i = 0; i < shapeCoors.length; i++) {
       // Wipe the old position of the active shape.
@@ -57,6 +78,20 @@ var gameGrid = function() {
     this.oldActiveShapeCoors = [x, y];
   }
   
+  /**
+   * Given the origin and coordinates of a shape, decides if the shape is 
+   * allowed to have that state.
+   * 
+   * @param {integer} x
+   *  The x position of the shape origin. 
+   * @param {integer} y
+   *  The y position of the shape origin.
+   * @param {Array} shapeCoors
+   *  The current shape coordinates, relative to the origin.
+   *  
+   * @returns {Boolean}
+   *  Whether or not the shape is allowed to exist in this position.
+   */
   this.moveAllowed = function (x, y, shapeCoors) {
     for (i = 0; i < shapeCoors.length; i++) {
       requestedX = stageOrigin[0] + x + shapeCoors[i][0];
@@ -74,6 +109,11 @@ var gameGrid = function() {
   }
 }
 
+/**
+ * Defines a class used to create an active shape on the tetris game grid.
+ * 
+ * @returns {tetrino}
+ */
 var tetrino = function() {
   // Here's the constructor of the object.
   // Choose which tetrino we will render from the tetrinoConfig.
@@ -88,16 +128,34 @@ var tetrino = function() {
   
   // Create a new graphics object
   this.graphics = new PIXI.Graphics();
-  
-  this.rotateShape = function() {
-    this.shapeRotation++;
-    if (this.shapeRotation >= this.shapeConfig.length) {
-      this.shapeRotation = 0;
+
+  /**
+   * Increments the rotation parameter or sets it to zero if it is too large.
+   * 
+   * @param {integer} rotation
+   *
+   * @returns {integer}
+   */
+  this.incrementRotation = function(rotation) {
+    rotation++;
+    if (rotation >= this.shapeConfig.length) {
+      rotation = 0;
     }
+    return rotation;
+  }
+  
+  /**
+   * Rotates the shape by one step as defined in the shapeCoors array.
+   */
+  this.rotateShape = function() {
+    this.shapeRotation = this.incrementRotation(this.shapeRotation);
     this.shapeCoors = this.shapeConfig[this.shapeRotation];
   }
   
-  this.makeShape = function() {
+  /**
+   * Renders the shape on the stage.
+   */
+  this.renderShape = function() {
     this.graphics.clear();
     // Loop through the coordinates of this shape and draw it.
     for (index = 0; index < this.shapeCoors.length; ++index) {
@@ -107,6 +165,7 @@ var tetrino = function() {
       ];
 
       this.graphics.beginFill(0x00FF00);
+      // Draw each cell in the shape using real pixel coordinates.
       this.graphics.drawRect(
         stageOrigin[0] + cellOrigin[0] + (this.x * cellSide), 
         stageOrigin[1] + cellOrigin[1] + (this.y * cellSide),
@@ -118,8 +177,11 @@ var tetrino = function() {
     this.graphics.endFill();
   }
   
+  /**
+   * Moves the shape down the stage at intervals, updating the grid each time.
+   */
   this.fall = function () {
-    this.makeShape();
+    this.renderShape();
     
     stage.addChild(this.graphics);
 
@@ -135,8 +197,11 @@ var tetrino = function() {
     }, timeOutInterval);
   }
   
+  /**
+   * Re-draws the shape at a position slid left or right and updates the grid.
+   */
   this.slide = function () {
-    this.makeShape();
+    this.renderShape();
     
     stage.addChild(this.graphics);
 
@@ -147,6 +212,17 @@ var tetrino = function() {
   }
 }
 
+/**
+ * Initialises a two dimensional array of specified dimensions.
+ * 
+ * @param {integer} cols
+ *  The number of columns in the array.
+ * @param {integer} rows
+ *  The number of rows in the array.
+ * 
+ * @returns {Array}
+ *  An array initialised with zeros.
+ */
 function createArray(cols, rows) {
   var a = new Array();
 
@@ -187,14 +263,17 @@ window.addEventListener('keydown', function(event) {
       }
       break;
     case 32: // Spacebar
-      piece.rotateShape();
+      // We need to get the shapecoors and rotate them without actually rotating
+      // the shape here. Then pass them to the moveAllowed function to make sure 
+      // we are allowed to rotate.
+      shapeRotation = piece.incrementRotation(piece.shapeRotation);
+      shapeCoors = piece.shapeConfig[shapeRotation];
+      
+      if (grid.moveAllowed(piece.x, piece.y, shapeCoors)) {
+        piece.rotateShape();
+      }
   }
   
   piece.slide();
   
 }, false);
-
-// The grid based rules are working to stop the shape disappearing off the left
-// of the screen, but not the right.
-// Implement functionality for the space bar so that we can twist the shape.
-// Comment the functions and methods.
