@@ -15,7 +15,7 @@ var game = function() {
   // Screen dimensions
   var cellSide = 24; // The width and height in pixels of a cell on the game stage.
   var gridCols = 18; // The number of columns on the game grid.
-  var gridRows = 10;//24; // The number of cells on the game grid.
+  var gridRows = 24; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
@@ -367,12 +367,3 @@ var game = function() {
 
 // Start the game.
 var g = new game();
-
-
-// When moveAllowed gets called on 279, the grid seems already to have updated
-// so that move allowed is looking at the active shape even if its ALREADY on top
-// of a fossil shape.
-// 
-// Add in some new checks to ensure that shape stack on top of each other.
-// The moveAllowed method must look for the other fossils on the board.
-// Introduce some different shapes and colours.
