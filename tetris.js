@@ -10,6 +10,9 @@ var game = function() {
   var ACTIVE = 1;
   var FOSSIL = 2;
   var EMPTY = 0;
+  
+  var BACKGROUND_COLOUR = 0x000000;
+  var SHAPE_DEFAULT_COLOUR = 0x00FF00;
 
   var cellSide = 24;
   var gridCols = 18;
@@ -28,7 +31,7 @@ var game = function() {
   ];
 
   // Create an new instance of a pixi stage
-  var stage = new PIXI.Stage(0x000000);
+  var stage = new PIXI.Stage(BACKGROUND_COLOUR);
 
   // Stage dimensions.
   var stageWidth = cellSide * gridCols;
@@ -247,7 +250,7 @@ var game = function() {
           this.shapeCoors[index][1] * cellSide,
         ];
 
-        this.graphics.beginFill(0x00FF00);
+        this.graphics.beginFill(SHAPE_DEFAULT_COLOUR);
         // Draw each cell in the shape using real pixel coordinates.
         this.graphics.drawRect(
           stageOrigin[0] + cellOrigin[0] + (this.x * cellSide), 
