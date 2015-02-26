@@ -86,6 +86,14 @@ var game = function() {
   var gameGrid = function() {  
     // Initialise the grid.
     this.grid = createArray(gridCols, gridRows);
+    
+    // Also create a blank row for the grid, which we'll use later when we come
+    // to do the 'collapse' that full tetris rows do.
+    this.blankRow = new Array();
+    for (i = 0; i < gridCols; i++) {
+      this.blankRow[i] = 0;
+    }
+    
     this.oldShapeCoors = new Array();
 
     /**
@@ -193,7 +201,7 @@ var game = function() {
         }
       }
       return true;
-    }
+    };
     
     /**
      * Looks for lines in the grid that can be collapsed and removes them if
@@ -220,9 +228,39 @@ var game = function() {
           completeRows.push(y);
         }
       }
-      console.log(completeRows);
+      
+      // Loop through the complete rows and remove them one at a time.
+      if (completeRows > 0) {
+        for(i = 0; i < completeRows.length; i++) {  
+          // Remove the complete row from the grid.
+          this.grid.splice(completeRows[i], 1);
+          // Add a new blank row at the top of the grid.
+          this.grid.unshift(this.blankRow);
+          // Render the remaining part of the grid again here. There's not enough
+          // data stored in the grid at the moment to re-render the correct 
+          // colours.
+          this.renderFossils(completeRows[i]);
+        }
+      }
     };
-  }
+    
+    /**
+     * Renders the fossils on the grid after a row has been removed.
+     * 
+     * @param {type} fromRow
+     *  The row above and including which everything will be re-rendered.
+     */
+    this.renderFossils = function (fromRow) {
+      for (y = 0; y < gridRows; y++) {
+        for (x = 0; x < gridRows; x++) {
+          if (this.grid[y][x] === FOSSIL) {
+            // Do something here.
+          }
+        }
+      }
+    };
+    
+  };
 
   /**
    * Defines a class used to create an active shape on the tetris game grid.
