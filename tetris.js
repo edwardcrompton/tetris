@@ -1,22 +1,21 @@
 /**
  * Defines a game object that will be used to control the global actions in the
- * game.
+ * game. Also sets all the variables that will be required to set up the game.
  */
 var game = function() {
-  var LEFT = 1;
-  var RIGHT = 2;
-  var BOTTOM = 3;
-
-  var ACTIVE = 1;
-  var FOSSIL = 2;
-  var EMPTY = 0;
+  // Grid variables.
+  var ACTIVE = 1; // A cell in the grid containing part of an active tetris piece.
+  var FOSSIL = 2; // A cell in the grid containing part of a fossilised (static) tetris piece.
+  var EMPTY = 0; // An empty cell in the grid.
   
-  var BACKGROUND_COLOUR = 0x000000;
-  var SHAPE_DEFAULT_COLOUR = 0x00FF00;
+  // Colours.
+  var BACKGROUND_COLOUR = 0x000000; // The background colour of the game stage.
+  var SHAPE_DEFAULT_COLOUR = 0x00FF00; // The default colour of the tetris pieces.
 
-  var cellSide = 24;
-  var gridCols = 18;
-  var gridRows = 10;//24;
+  // Screen dimensions
+  var cellSide = 24; // The width and height in pixels of a cell on the game stage.
+  var gridCols = 18; // The number of columns on the game grid.
+  var gridRows = 10;//24; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
