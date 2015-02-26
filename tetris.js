@@ -11,6 +11,10 @@ var game = function() {
   // Colours.
   var BACKGROUND_COLOUR = 0x000000; // The background colour of the game stage.
   var SHAPE_DEFAULT_COLOUR = 0x00FF00; // The default colour of the tetris pieces.
+  var RED = 0xFF0000;
+  var GREEN = 0x00FF00;
+  var BLUE = 0x0000FF;
+  var YELLOW = 0xFFFF00;
 
   // Screen dimensions
   var cellSide = 24; // The width and height in pixels of a cell on the game stage.
@@ -26,8 +30,17 @@ var game = function() {
       [[1,0],[1,1],[0,2],[1,2]], // First shape, second rotation.
       [[0,0],[0,1],[1,1],[2,1]], // First shape, third rotation.
       [[1,0],[2,0],[1,1],[1,2]], // First shape, fourth rotation.
+    ],
+    [
+      [[0,0],[0,1],[0,2],[0,3]], // Second shape, first rotation.
+      [[0,0],[1,0],[2,0],[3,0]], // Second shape, second rotation.
+    ],
+    [
+      [[0,0],[0,1],[1,0],[1,1]], // Third shape, only rotation.
     ]
   ];
+  
+  var tetrinoColours = [RED, GREEN, BLUE, YELLOW];
 
   // Create an new instance of a pixi stage
   var stage = new PIXI.Stage(BACKGROUND_COLOUR);
@@ -190,7 +203,35 @@ var game = function() {
           console.log(this.grid[x, y]);
         }
       }
-    }
+    };
+    
+    /**
+     * Looks for lines in the grid that can be collapsed and removes them if
+     * so.
+     */
+    this.collapse = function () {
+      // Initialise an array to hold the rows that are discovered to be complete.
+      var completeRows = new Array();
+      
+      // Search through the grid from the bottom up.
+      for (y = this.grid[0].length - 1; y >= 0; y--) {
+        // Assume the row is complete to begin with.
+        var rowComplete = true;
+        for (x = 0; x < this.grid.length; x++) {
+          if (this.grid[x][y] !== FOSSIL) {
+            // If any of the cells in the row are not fossils, mark the whole
+            // row not complete and break out.
+            rowComplete = false;
+            break;
+          }
+        }
+        if (rowComplete) {
+          // Maintain an array that holds complete rows.
+          completeRows.push(y);
+        }
+      }
+      console.log(completeRows);
+    };
   }
 
   /**
@@ -201,10 +242,11 @@ var game = function() {
   var tetrino = function() {
     // Here's the constructor of the object.
     // Choose which tetrino we will render from the tetrinoConfig.
-    this.shape = 0;
+    this.shape = Math.floor(Math.random() * (tetrinosConfig.length));
     this.shapeConfig = tetrinosConfig[this.shape];
     this.shapeRotation = Math.floor(Math.random() * (this.shapeConfig.length));
     this.shapeCoors = this.shapeConfig[this.shapeRotation];
+    this.shapeColour = tetrinoColours[Math.floor(Math.random() * (tetrinoColours.length))];
 
     // The cell coordinates of the shape's position on the grid. It will start
     // from the origin of the stage.
@@ -250,7 +292,7 @@ var game = function() {
           this.shapeCoors[index][1] * cellSide,
         ];
 
-        this.graphics.beginFill(SHAPE_DEFAULT_COLOUR);
+        this.graphics.beginFill(this.shapeColour);
         // Draw each cell in the shape using real pixel coordinates.
         this.graphics.drawRect(
           stageOrigin[0] + cellOrigin[0] + (this.x * cellSide), 
@@ -299,12 +341,17 @@ var game = function() {
     }
 
     /**
-     * Handles what happens to an active shape when it cannot move down any further.
+     * Handles what happens when an active shape can no longer move down.
      */
     this.fix = function(grid) {
       // Fossilise the shape on the grid.
       grid.fossiliseActiveShape(this.x, this.y, this.shapeCoors);
-      // Drops a new piece.
+      
+      // Check to see if any lines can be removed from the stacked fossilised 
+      // shapes.
+      grid.collapse();
+      
+      // Drop a new piece.
       dropPiece();
     };
   };
