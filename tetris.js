@@ -53,6 +53,12 @@ var game = function() {
   //var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
   var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
+  function initialiseGraphics() {
+    this.graphics = new PIXI.Graphics();
+  }
+
+  initialiseGraphics();
+
   // Add the renderer view element to the DOM
   document.body.appendChild(renderer.view);
 
@@ -252,7 +258,7 @@ var game = function() {
      *  The row above and including which everything will be re-rendered.
      */
     this.renderFossils = function (fromRow) {
-      renderer.context.drawImage(
+      graphics.drawImage(
         renderer.context.canvas, // The canvas we want to copy.
         0, // The position from which we want to start copying (x)
         0, // " " (y)
@@ -285,8 +291,7 @@ var game = function() {
     this.x = stageOrigin[0];
     this.y = stageOrigin[1];
 
-    // Create a new graphics object
-    this.graphics = new PIXI.Graphics();
+    initialiseGraphics();
 
     /**
      * Increments the rotation parameter or loops it back to zero if it is too 
@@ -316,7 +321,7 @@ var game = function() {
      * Renders the shape on the stage.
      */
     this.render = function() {
-      this.graphics.clear();
+      graphics.clear();
       // Loop through the coordinates of this shape and draw it.
       for (index = 0; index < this.shapeCoors.length; ++index) {
         var cellOrigin = [
@@ -324,9 +329,9 @@ var game = function() {
           this.shapeCoors[index][1] * cellSide,
         ];
 
-        this.graphics.beginFill(this.shapeColour);
+        graphics.beginFill(this.shapeColour);
         // Draw each cell in the shape using real pixel coordinates.
-        this.graphics.drawRect(
+        graphics.drawRect(
           stageOrigin[0] + cellOrigin[0] + (this.x * cellSide), 
           stageOrigin[1] + cellOrigin[1] + (this.y * cellSide),
           cellSide, 
@@ -334,9 +339,9 @@ var game = function() {
         );
       }
 
-      this.graphics.endFill();
+      graphics.endFill();
       
-      stage.addChild(this.graphics);
+      stage.addChild(graphics);
       
       // After shifting the canvas down to hide a collapsed row, this removes
       // the copied canvas again.
