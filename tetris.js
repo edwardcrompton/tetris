@@ -175,7 +175,7 @@ var game = function() {
         
         // Look at the grid to see if the coordinates are already taken up by
         // a fossilised shape.
-        if (this.grid[requestedX, requestedY] == FOSSIL) {
+        if (this.grid[requestedX][requestedY] === FOSSIL) {
           return false;
         }
       }
@@ -271,11 +271,8 @@ var game = function() {
      * Moves the shape down the stage at intervals, updating the grid each time.
      */
     this.fall = function (grid) {
-      // Render the shape so that it's visible.
-      this.render();
-
-      // Update the shape on the grid.
-      grid.moveActiveShape(this.x, this.y, this.shapeCoors);
+      // Render the shape and update the grid.
+      this.move();
 
       var t = this;
       setTimeout(function () {
@@ -291,18 +288,14 @@ var game = function() {
     }
 
     /**
-     * Re-draws the shape at a position slid left or right or rotated and updates 
-     * the grid.
+     * Re-draws the shape at any position and updates the grid accordingly.
      */
-    this.slide = function () {
+    this.move = function () {
+      // Render the shape so that it's visible.
       this.render();
-
-      stage.addChild(this.graphics);
 
       // Update the shape on the grid.
       grid.moveActiveShape(this.x, this.y, this.shapeCoors);
-
-      renderer.render(stage);
     }
 
     /**
@@ -313,8 +306,8 @@ var game = function() {
       grid.fossiliseActiveShape(this.x, this.y, this.shapeCoors);
       // Drops a new piece.
       dropPiece();
-    }
-  }
+    };
+  };
   
   /**
    * Creates and initialises a new piece in the game.
@@ -354,19 +347,20 @@ var game = function() {
         }
         break;
       case 32: // Spacebar
-        // We need to get the shapecoors and rotate them without actually rotating
-        // the shape here. Then pass them to the moveAllowed function to make sure 
-        // we are allowed to rotate.
+        // Here we work out the hypethetical coors of the shape if it were to 
+        // rotate. Then we pass them to the moveAllowed method to see if the
+        // shape could move like that.
         shapeRotation = piece.incrementRotation(piece.shapeRotation);
         shapeCoors = piece.shapeConfig[shapeRotation];
 
         if (grid.moveAllowed(piece.x, piece.y, shapeCoors)) {
           piece.rotate();
         }
+        break;
     }
 
     // Update the rendered shape and the game grid.
-    piece.slide();
+    piece.move();
     
   }, false);
 }
