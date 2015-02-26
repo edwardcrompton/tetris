@@ -19,7 +19,7 @@ var game = function() {
   // Screen dimensions
   var cellSide = 24; // The width and height in pixels of a cell on the game stage.
   var gridCols = 18; // The number of columns on the game grid.
-  var gridRows = 24; // The number of cells on the game grid.
+  var gridRows = 12; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
@@ -50,7 +50,8 @@ var game = function() {
   var stageHeight = cellSide * gridRows;
 
   // Create a renderer instance.
-  var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+  //var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+  var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
   // Add the renderer view element to the DOM
   document.body.appendChild(renderer.view);
@@ -245,19 +246,22 @@ var game = function() {
     };
     
     /**
-     * Renders the fossils on the grid after a row has been removed.
+     * Re-renders the fossils on the grid after a row has been removed.
      * 
      * @param {type} fromRow
      *  The row above and including which everything will be re-rendered.
      */
     this.renderFossils = function (fromRow) {
-      for (y = 0; y < gridRows; y++) {
-        for (x = 0; x < gridRows; x++) {
-          if (this.grid[y][x] === FOSSIL) {
-            // Do something here.
-          }
-        }
-      }
+      renderer.context.drawImage(
+        renderer.context.canvas, // The canvas we want to copy.
+        0, // The position from which we want to start copying (x)
+        0, // " " (y)
+        renderer.context.canvas.width, // The width of the copied area.
+        fromRow * cellSide, // The height of the copied area.
+        0, // The position to place the copied canvas on top of the existing canvas (x).
+        cellSide, // " " (y)
+        gridCols * cellSide, // The width of the copied canvas.
+        fromRow * cellSide); // The height of the copied canvas.
     };
     
   };
@@ -334,6 +338,8 @@ var game = function() {
       
       stage.addChild(this.graphics);
       
+      // After shifting the canvas down to hide a collapsed row, this removes
+      // the copied canvas again.
       renderer.render(stage);
     };
 
