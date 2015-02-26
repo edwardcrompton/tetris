@@ -69,10 +69,10 @@ var game = function() {
   function createArray(cols, rows) {
     var a = new Array();
 
-    for (x = 0; x < cols; x++) {
-      a[x] = new Array();
-      for (y = 0; y < rows; y++) {
-        a[x][y] = 0;
+    for (y = 0; y < rows; y++) {
+      a[y] = new Array();
+      for (x = 0; x < cols; x++) {
+        a[y][x] = 0;
       }
     }
     return a;
@@ -97,7 +97,7 @@ var game = function() {
     this.initialiseActiveShape = function (shapeCoors) {
       // Map the active shape on to the grid.
       for (i = 0; i < shapeCoors.length; i++) {
-        this.grid[stageOrigin[0] + shapeCoors[i][0]][stageOrigin[1] + shapeCoors[i][1]] = 1;
+        this.grid[stageOrigin[1] + shapeCoors[i][1]][stageOrigin[0] + shapeCoors[i][0]] = 1;
       }
       // Save the old shape coordinates. They will change if the shape
       // rotates.
@@ -121,7 +121,7 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         oldX = stageOrigin[0] + this.oldActiveShapeOrigin[0] + this.oldShapeCoors[i][0]
         oldY = stageOrigin[1] + this.oldActiveShapeOrigin[1] + this.oldShapeCoors[i][1]
-        this.grid[oldX][oldY] = EMPTY;
+        this.grid[oldY][oldX] = EMPTY;
       }
       
       // We require two separate loops here. Otherwise the new positions get
@@ -131,7 +131,7 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         newX = stageOrigin[0] + x + shapeCoors[i][0];
         newY = stageOrigin[1] + y + shapeCoors[i][1];
-        this.grid[newX][newY] = ACTIVE;
+        this.grid[newY][newX] = ACTIVE;
       }
       // Save the origin and coordinates of the shape for next time.
       this.oldActiveShapeOrigin = [x, y];
@@ -152,7 +152,7 @@ var game = function() {
       // Fossilise the shape by changing the values on its coordiates in the grid
       // to FOSSIL (2) rather than ACTIVE (1).
       for (i = 0; i < shapeCoors.length; i++) {
-        this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
+        this.grid[stageOrigin[1] + y + shapeCoors[i][1]][stageOrigin[0] + x + shapeCoors[i][0]] = FOSSIL;
       }
     }
 
@@ -188,22 +188,12 @@ var game = function() {
         
         // Look at the grid to see if the coordinates are already taken up by
         // a fossilised shape.
-        if (this.grid[requestedX][requestedY] === FOSSIL) {
+        if (this.grid[requestedY][requestedX] === FOSSIL) {
           return false;
         }
       }
       return true;
     }
-    
-    this.debugShowGrid = function() {
-      var row = '';
-      var cols = '';
-      for (y = 0; y < gridRows; y++) {
-        for (x = 0; x < gridCols; x++) {
-          console.log(this.grid[x, y]);
-        }
-      }
-    };
     
     /**
      * Looks for lines in the grid that can be collapsed and removes them if
@@ -214,11 +204,11 @@ var game = function() {
       var completeRows = new Array();
       
       // Search through the grid from the bottom up.
-      for (y = this.grid[0].length - 1; y >= 0; y--) {
+      for (y = this.grid.length - 1; y >= 0; y--) {
         // Assume the row is complete to begin with.
         var rowComplete = true;
-        for (x = 0; x < this.grid.length; x++) {
-          if (this.grid[x][y] !== FOSSIL) {
+        for (x = 0; x < this.grid[0].length; x++) {
+          if (this.grid[y][x] !== FOSSIL) {
             // If any of the cells in the row are not fossils, mark the whole
             // row not complete and break out.
             rowComplete = false;
