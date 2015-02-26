@@ -261,20 +261,21 @@ var game = function() {
       }
 
       this.graphics.endFill();
-    }
+      
+      stage.addChild(this.graphics);
+      
+      renderer.render(stage);
+    };
 
     /**
      * Moves the shape down the stage at intervals, updating the grid each time.
      */
     this.fall = function (grid) {
+      // Render the shape so that it's visible.
       this.render();
-
-      stage.addChild(this.graphics);
 
       // Update the shape on the grid.
       grid.moveActiveShape(this.x, this.y, this.shapeCoors);
-
-      renderer.render(stage);
 
       var t = this;
       setTimeout(function () {
