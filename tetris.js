@@ -12,7 +12,7 @@ var game = function() {
   var EMPTY = 0;
   
   var BACKGROUND_COLOUR = 0x000000;
-  var SHAPE_DEFAULT_COLOUR = 0x00FF00;
+  var SHAPE_DEFAULT_COLOUR = 0x0000FF;
 
   var cellSide = 24;
   var gridCols = 18;
