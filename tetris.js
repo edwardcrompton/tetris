@@ -141,13 +141,11 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
       }
-      // We also need to reset the old shape coors.
-      
     }
 
     /**
-     * Given the origin and coordinates of a shape, decides if the shape is 
-     * allowed to have that state.
+     * Given the hyperthetical origin and coordinates of a shape, decides if the
+     * shape is allowed to have that state.
      * 
      * @param {integer} x
      *  The x position of the shape origin. 
@@ -160,22 +158,23 @@ var game = function() {
      *  Whether or not the shape is allowed to exist in this position.
      */
     this.moveAllowed = function (x, y, shapeCoors) {
+      // Loop through each cell in the shape.
       for (i = 0; i < shapeCoors.length; i++) {
         var requestedX = stageOrigin[0] + x + shapeCoors[i][0];
         var requestedY = stageOrigin[1] + y + shapeCoors[i][1];
 
         // Things that tell us immediately this move cannot be made.
         if (requestedX >= gridCols || requestedX < 0) {
+          // The shape is off the right of the grid.
           return false;
         }
         if (requestedY >= gridRows || requestedY < 0) {
+          // The shape is off the left of the grid.
           return false;
         }
         
         // Look at the grid to see if the coordinates are already taken up by
         // a fossilised shape.
-        // There's a problem here. It looks as though the grid has already been
-        // updated byt he time we get to this point.
         if (this.grid[requestedX, requestedY] == FOSSIL) {
           return false;
         }
@@ -207,15 +206,17 @@ var game = function() {
     this.shapeRotation = Math.floor(Math.random() * (this.shapeConfig.length));
     this.shapeCoors = this.shapeConfig[this.shapeRotation];
 
-    // The cell coordinates of the shape's position on the grid.
-    this.x = 0;
-    this.y = 0;
+    // The cell coordinates of the shape's position on the grid. It will start
+    // from the origin of the stage.
+    this.x = stageOrigin[0];
+    this.y = stageOrigin[1];
 
     // Create a new graphics object
     this.graphics = new PIXI.Graphics();
 
     /**
-     * Increments the rotation parameter or sets it to zero if it is too large.
+     * Increments the rotation parameter or loops it back to zero if it is too 
+     * large.
      * 
      * @param {integer} rotation
      *
@@ -230,12 +231,12 @@ var game = function() {
     }
 
     /**
-     * Rotates the shape by one step as defined in the shapeCoors array.
+     * Rotates the shape to the next state defined in the shapeCoors array.
      */
     this.rotate = function() {
       this.shapeRotation = this.incrementRotation(this.shapeRotation);
       this.shapeCoors = this.shapeConfig[this.shapeRotation];
-    }
+    };
 
     /**
      * Renders the shape on the stage.
