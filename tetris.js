@@ -9,7 +9,7 @@ var game = function() {
   var EMPTY = 0; // An empty cell in the grid.
   
   // Colours.
-  var BACKGROUND_COLOUR = 0x000000; // The background colour of the game stage.
+  var BACKGROUND_COLOUR = 0x0000FF; // The background colour of the game stage.
   var SHAPE_DEFAULT_COLOUR = 0x00FF00; // The default colour of the tetris pieces.
   var RED = 0xFF0000;
   var GREEN = 0x00FF00;
