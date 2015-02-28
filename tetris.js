@@ -15,11 +15,18 @@ var game = function() {
   var GREEN = 0x00FF00;
   var BLUE = 0x0000FF;
   var YELLOW = 0xFFFF00;
+  var MAGENTA = 0xFF00FF;
+
+  // KEYS
+  var LEFT = 37;
+  var RIGHT = 39;
+  var DOWN = 40;
+  var TWIST = 32;
 
   // Screen dimensions
   var cellSide = 24; // The width and height in pixels of a cell on the game stage.
   var gridCols = 18; // The number of columns on the game grid.
-  var gridRows = 12; // The number of cells on the game grid.
+  var gridRows = 24; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
@@ -37,10 +44,24 @@ var game = function() {
     ],
     [
       [[0,0],[0,1],[1,0],[1,1]], // Third shape, only rotation.
-    ]
+    ],
+    [
+      [[0,0],[0,1],[1,1],[1,2]], // Fourth shape, first rotation.
+      [[1,0],[2,0],[0,1],[1,1]], // Fourth shape, second rotation.
+    ],
+    [
+      [[1,0],[0,1],[1,1],[0,2]], // Fourth shape, first rotation.
+      [[0,0],[1,0],[1,1],[2,1]], // Fourth shape, second rotation.
+    ],
+    [
+      [[0,1],[1,1],[2,1],[2,0]], // First shape, first rotation.
+      [[0,0],[0,1],[1,2],[0,2]], // First shape, second rotation.
+      [[0,0],[0,1],[1,0],[2,0]], // First shape, third rotation.
+      [[0,0],[1,0],[1,1],[1,2]], // First shape, fourth rotation.
+    ],
   ];
   
-  var tetrinoColours = [RED, GREEN, BLUE, YELLOW];
+  var tetrinoColours = [RED, GREEN, BLUE, YELLOW, MAGENTA];
 
   // Create an new instance of a pixi stage
   var stage = new PIXI.Stage(BACKGROUND_COLOUR);
@@ -416,22 +437,22 @@ var game = function() {
   // Event listener to listen for left, right, space keypresses.
   window.addEventListener('keydown', function(event) {
     switch (event.keyCode) {
-      case 37: // Left
+      case LEFT: // Left
         if (grid.moveAllowed(piece.x - 1, piece.y, piece.shapeCoors)) {
           piece.x -= 1;
         }
         break;
-      case 39: // Right
+      case RIGHT: // Right
         if (grid.moveAllowed(piece.x + 1, piece.y, piece.shapeCoors)) {
           piece.x += 1;
         }
         break;
-      case 40: // Down (accelerate).
+      case DOWN: // Down (accelerate).
         if (grid.moveAllowed(piece.x, piece.y + 1, piece.shapeCoors)) {
           piece.y += 1;
         }
         break;
-      case 32: // Spacebar
+      case TWIST: // Spacebar
         // Here we work out the hypethetical coors of the shape if it were to 
         // rotate. Then we pass them to the moveAllowed method to see if the
         // shape could move like that.
@@ -458,6 +479,5 @@ var g = new game();
 // that the grid is not getting updated absolutely correctly?
 // Shapes seem to stop getting fossilised when this happens. Perhaps just pause the game
 // when it happens and look at the grid.
-// Introduce the last few shapes.
 // Randomisation should work better. Prevent colours from being used twice in a
 // row.
