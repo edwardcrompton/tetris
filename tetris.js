@@ -10,7 +10,6 @@ var game = function() {
   
   // Colours.
   var BACKGROUND_COLOUR = 0x000000; // The background colour of the game stage.
-  var SHAPE_DEFAULT_COLOUR = 0x00FF00; // The default colour of the tetris pieces.
   var RED = 0xFF0000;
   var GREEN = 0x00FF00;
   var BLUE = 0x0000FF;
@@ -50,14 +49,14 @@ var game = function() {
       [[1,0],[2,0],[0,1],[1,1]], // Fourth shape, second rotation.
     ],
     [
-      [[1,0],[0,1],[1,1],[0,2]], // Fourth shape, first rotation.
-      [[0,0],[1,0],[1,1],[2,1]], // Fourth shape, second rotation.
+      [[1,0],[0,1],[1,1],[0,2]], // Fifth shape, first rotation.
+      [[0,0],[1,0],[1,1],[2,1]], // Fifth shape, second rotation.
     ],
     [
-      [[0,1],[1,1],[2,1],[2,0]], // First shape, first rotation.
-      [[0,0],[0,1],[1,2],[0,2]], // First shape, second rotation.
-      [[0,0],[0,1],[1,0],[2,0]], // First shape, third rotation.
-      [[0,0],[1,0],[1,1],[1,2]], // First shape, fourth rotation.
+      [[0,1],[1,1],[2,1],[2,0]], // Sixth shape, first rotation.
+      [[0,0],[0,1],[1,2],[0,2]], // Sixth shape, second rotation.
+      [[0,0],[0,1],[1,0],[2,0]], // Sixth shape, third rotation.
+      [[0,0],[1,0],[1,1],[1,2]], // Sixth shape, fourth rotation.
     ],
   ];
   
