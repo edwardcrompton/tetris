@@ -54,10 +54,11 @@ var game = function() {
   var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
   function initialiseGraphics() {
-    this.graphics = new PIXI.Graphics();
+    graphics = new PIXI.Graphics();
+    return graphics;
   }
 
-  initialiseGraphics();
+  this.graphics = initialiseGraphics();
 
   // Add the renderer view element to the DOM
   document.body.appendChild(renderer.view);
@@ -258,7 +259,7 @@ var game = function() {
      *  The row above and including which everything will be re-rendered.
      */
     this.renderFossils = function (fromRow) {
-      graphics.drawImage(
+      renderer.context.drawImage(
         renderer.context.canvas, // The canvas we want to copy.
         0, // The position from which we want to start copying (x)
         0, // " " (y)
@@ -343,8 +344,6 @@ var game = function() {
       
       stage.addChild(graphics);
       
-      // After shifting the canvas down to hide a collapsed row, this removes
-      // the copied canvas again.
       renderer.render(stage);
     };
 
