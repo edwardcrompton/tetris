@@ -53,16 +53,6 @@ var game = function() {
   //var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
   var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
-  function initialiseGraphics() {
-    graphics = new PIXI.Graphics();
-    return graphics;
-  }
-
-  this.graphics = initialiseGraphics();
-
-  // Add the renderer view element to the DOM
-  document.body.appendChild(renderer.view);
-
   /**
    * Initialises a two dimensional array of specified dimensions.
    * 
@@ -259,18 +249,22 @@ var game = function() {
      *  The row above and including which everything will be re-rendered.
      */
     this.renderFossils = function (fromRow) {
-      renderer.context.drawImage(
-        renderer.context.canvas, // The canvas we want to copy.
-        0, // The position from which we want to start copying (x)
-        0, // " " (y)
-        renderer.context.canvas.width, // The width of the copied area.
-        fromRow * cellSide, // The height of the copied area.
-        0, // The position to place the copied canvas on top of the existing canvas (x).
-        cellSide, // " " (y)
-        gridCols * cellSide, // The width of the copied canvas.
-        fromRow * cellSide); // The height of the copied canvas.
+      // Create a rectangle that will define the area of the canvas we want to 
+      // copy.
+      var cropRect = new PIXI.Rectangle(0, 0, renderer.context.canvas.width, fromRow * cellSide);
+      // Create the base texture using the global canvas as a source.
+      var baseTexture = new PIXI.BaseTexture(renderer.context.canvas, PIXI.scaleModes.DEFAULT);
+      // Create a texture that is cropped using the rectangle we defined above.
+      var fossilTexture = new PIXI.Texture(baseTexture, cropRect);
+      // Turn the texture into a sprite.
+      var fossilSprite = new PIXI.Sprite(fossilTexture);
+      // Set the x and y coordinates of where the sprite should be placed.
+      fossilSprite.x = 0;
+      fossilSprite.y = cellSide;
+      // Add the sprite to the stage. When the next shape is rendered, the stage
+      // will also get re-rendered.
+      stage.addChild(fossilSprite);
     };
-    
   };
 
   /**
@@ -279,6 +273,11 @@ var game = function() {
    * @returns {tetrino}
    */
   var tetrino = function() {
+    var graphics = new PIXI.Graphics();
+
+    // Add the renderer view element to the DOM
+    document.body.appendChild(renderer.view);
+    
     // Here's the constructor of the object.
     // Choose which tetrino we will render from the tetrinoConfig.
     this.shape = Math.floor(Math.random() * (tetrinosConfig.length));
@@ -291,8 +290,6 @@ var game = function() {
     // from the origin of the stage.
     this.x = stageOrigin[0];
     this.y = stageOrigin[1];
-
-    initialiseGraphics();
 
     /**
      * Increments the rotation parameter or loops it back to zero if it is too 
