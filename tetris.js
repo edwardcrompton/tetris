@@ -19,7 +19,7 @@ var game = function() {
   // Screen dimensions
   var cellSide = 24; // The width and height in pixels of a cell on the game stage.
   var gridCols = 18; // The number of columns on the game grid.
-  var gridRows = 24; // The number of cells on the game grid.
+  var gridRows = 12; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
   var timeOutInterval = 500;
@@ -50,10 +50,8 @@ var game = function() {
   var stageHeight = cellSide * gridRows;
 
   // Create a renderer instance.
-  var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
-
-  // Add the renderer view element to the DOM
-  document.body.appendChild(renderer.view);
+  //var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+  var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
   /**
    * Initialises a two dimensional array of specified dimensions.
@@ -69,10 +67,10 @@ var game = function() {
   function createArray(cols, rows) {
     var a = new Array();
 
-    for (x = 0; x < cols; x++) {
-      a[x] = new Array();
-      for (y = 0; y < rows; y++) {
-        a[x][y] = 0;
+    for (y = 0; y < rows; y++) {
+      a[y] = new Array();
+      for (x = 0; x < cols; x++) {
+        a[y][x] = 0;
       }
     }
     return a;
@@ -86,6 +84,14 @@ var game = function() {
   var gameGrid = function() {  
     // Initialise the grid.
     this.grid = createArray(gridCols, gridRows);
+    
+    // Also create a blank row for the grid, which we'll use later when we come
+    // to do the 'collapse' that full tetris rows do.
+    this.blankRow = new Array();
+    for (i = 0; i < gridCols; i++) {
+      this.blankRow[i] = 0;
+    }
+    
     this.oldShapeCoors = new Array();
 
     /**
@@ -97,7 +103,7 @@ var game = function() {
     this.initialiseActiveShape = function (shapeCoors) {
       // Map the active shape on to the grid.
       for (i = 0; i < shapeCoors.length; i++) {
-        this.grid[stageOrigin[0] + shapeCoors[i][0]][stageOrigin[1] + shapeCoors[i][1]] = 1;
+        this.grid[stageOrigin[1] + shapeCoors[i][1]][stageOrigin[0] + shapeCoors[i][0]] = 1;
       }
       // Save the old shape coordinates. They will change if the shape
       // rotates.
@@ -121,7 +127,7 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         oldX = stageOrigin[0] + this.oldActiveShapeOrigin[0] + this.oldShapeCoors[i][0]
         oldY = stageOrigin[1] + this.oldActiveShapeOrigin[1] + this.oldShapeCoors[i][1]
-        this.grid[oldX][oldY] = EMPTY;
+        this.grid[oldY][oldX] = EMPTY;
       }
       
       // We require two separate loops here. Otherwise the new positions get
@@ -131,7 +137,7 @@ var game = function() {
       for (i = 0; i < shapeCoors.length; i++) {
         newX = stageOrigin[0] + x + shapeCoors[i][0];
         newY = stageOrigin[1] + y + shapeCoors[i][1];
-        this.grid[newX][newY] = ACTIVE;
+        this.grid[newY][newX] = ACTIVE;
       }
       // Save the origin and coordinates of the shape for next time.
       this.oldActiveShapeOrigin = [x, y];
@@ -152,7 +158,7 @@ var game = function() {
       // Fossilise the shape by changing the values on its coordiates in the grid
       // to FOSSIL (2) rather than ACTIVE (1).
       for (i = 0; i < shapeCoors.length; i++) {
-        this.grid[stageOrigin[0] + x + shapeCoors[i][0]][stageOrigin[1] + y + shapeCoors[i][1]] = FOSSIL;
+        this.grid[stageOrigin[1] + y + shapeCoors[i][1]][stageOrigin[0] + x + shapeCoors[i][0]] = FOSSIL;
       }
     }
 
@@ -188,21 +194,11 @@ var game = function() {
         
         // Look at the grid to see if the coordinates are already taken up by
         // a fossilised shape.
-        if (this.grid[requestedX][requestedY] === FOSSIL) {
+        if (this.grid[requestedY][requestedX] === FOSSIL) {
           return false;
         }
       }
       return true;
-    }
-    
-    this.debugShowGrid = function() {
-      var row = '';
-      var cols = '';
-      for (y = 0; y < gridRows; y++) {
-        for (x = 0; x < gridCols; x++) {
-          console.log(this.grid[x, y]);
-        }
-      }
     };
     
     /**
@@ -214,11 +210,11 @@ var game = function() {
       var completeRows = new Array();
       
       // Search through the grid from the bottom up.
-      for (y = this.grid[0].length - 1; y >= 0; y--) {
+      for (y = this.grid.length - 1; y >= 0; y--) {
         // Assume the row is complete to begin with.
         var rowComplete = true;
-        for (x = 0; x < this.grid.length; x++) {
-          if (this.grid[x][y] !== FOSSIL) {
+        for (x = 0; x < this.grid[0].length; x++) {
+          if (this.grid[y][x] !== FOSSIL) {
             // If any of the cells in the row are not fossils, mark the whole
             // row not complete and break out.
             rowComplete = false;
@@ -230,9 +226,46 @@ var game = function() {
           completeRows.push(y);
         }
       }
-      console.log(completeRows);
+      
+      // Loop through the complete rows and remove them one at a time.
+      if (completeRows > 0) {
+        for(i = 0; i < completeRows.length; i++) {  
+          // Remove the complete row from the grid.
+          this.grid.splice(completeRows[i], 1);
+          // Add a new blank row at the top of the grid.
+          this.grid.unshift(this.blankRow);
+          // Render the remaining part of the grid again here. There's not enough
+          // data stored in the grid at the moment to re-render the correct 
+          // colours.
+          this.renderFossils(completeRows[i]);
+        }
+      }
     };
-  }
+    
+    /**
+     * Re-renders the fossils on the grid after a row has been removed.
+     * 
+     * @param {type} fromRow
+     *  The row above and including which everything will be re-rendered.
+     */
+    this.renderFossils = function (fromRow) {
+      // Create a rectangle that will define the area of the canvas we want to 
+      // copy.
+      var cropRect = new PIXI.Rectangle(0, 0, renderer.context.canvas.width, fromRow * cellSide);
+      // Create the base texture using the global canvas as a source.
+      var baseTexture = new PIXI.BaseTexture(renderer.context.canvas, PIXI.scaleModes.DEFAULT);
+      // Create a texture that is cropped using the rectangle we defined above.
+      var fossilTexture = new PIXI.Texture(baseTexture, cropRect);
+      // Turn the texture into a sprite.
+      var fossilSprite = new PIXI.Sprite(fossilTexture);
+      // Set the x and y coordinates of where the sprite should be placed.
+      fossilSprite.x = 0;
+      fossilSprite.y = cellSide;
+      // Add the sprite to the stage. When the next shape is rendered, the stage
+      // will also get re-rendered.
+      stage.addChild(fossilSprite);
+    };
+  };
 
   /**
    * Defines a class used to create an active shape on the tetris game grid.
@@ -240,6 +273,11 @@ var game = function() {
    * @returns {tetrino}
    */
   var tetrino = function() {
+    var graphics = new PIXI.Graphics();
+
+    // Add the renderer view element to the DOM
+    document.body.appendChild(renderer.view);
+    
     // Here's the constructor of the object.
     // Choose which tetrino we will render from the tetrinoConfig.
     this.shape = Math.floor(Math.random() * (tetrinosConfig.length));
@@ -252,9 +290,6 @@ var game = function() {
     // from the origin of the stage.
     this.x = stageOrigin[0];
     this.y = stageOrigin[1];
-
-    // Create a new graphics object
-    this.graphics = new PIXI.Graphics();
 
     /**
      * Increments the rotation parameter or loops it back to zero if it is too 
@@ -284,7 +319,7 @@ var game = function() {
      * Renders the shape on the stage.
      */
     this.render = function() {
-      this.graphics.clear();
+      graphics.clear();
       // Loop through the coordinates of this shape and draw it.
       for (index = 0; index < this.shapeCoors.length; ++index) {
         var cellOrigin = [
@@ -292,9 +327,9 @@ var game = function() {
           this.shapeCoors[index][1] * cellSide,
         ];
 
-        this.graphics.beginFill(this.shapeColour);
+        graphics.beginFill(this.shapeColour);
         // Draw each cell in the shape using real pixel coordinates.
-        this.graphics.drawRect(
+        graphics.drawRect(
           stageOrigin[0] + cellOrigin[0] + (this.x * cellSide), 
           stageOrigin[1] + cellOrigin[1] + (this.y * cellSide),
           cellSide, 
@@ -302,9 +337,9 @@ var game = function() {
         );
       }
 
-      this.graphics.endFill();
+      graphics.endFill();
       
-      stage.addChild(this.graphics);
+      stage.addChild(graphics);
       
       renderer.render(stage);
     };
