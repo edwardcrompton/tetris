@@ -9,7 +9,7 @@ var game = function() {
   var EMPTY = 0; // An empty cell in the grid.
   
   // Colours.
-  var BACKGROUND_COLOUR = 0x00FF00; // The background colour of the game stage.
+  var BACKGROUND_COLOUR = 0x000000; // The background colour of the game stage.
   var SHAPE_DEFAULT_COLOUR = 0x00FF00; // The default colour of the tetris pieces.
   var RED = 0xFF0000;
   var GREEN = 0x00FF00;
@@ -230,14 +230,16 @@ var game = function() {
       // Loop through the complete rows and remove them one at a time.
       if (completeRows.length > 0) {
         for(i = 0; i < completeRows.length; i++) {  
-          // Remove the complete row from the grid.
-          this.grid.splice(completeRows[i], 1);
+          // Remove the complete row from the grid. The number of the row to be
+          // removed will have to be incremented by the number of rows that have
+          // been removed before it, because the grid shifts down one each time.
+          this.grid.splice(completeRows[i] + i, 1);
           // Add a new blank row at the top of the grid.
           this.grid.unshift(this.blankRow);
           // Render the remaining part of the grid again here. There's not enough
           // data stored in the grid at the moment to re-render the correct 
           // colours.
-          this.renderFossils(completeRows[i]);
+          this.renderFossils(completeRows[i] + i);
         }
       }
     };
