@@ -95,6 +95,14 @@ var game = function() {
     }
     return a;
   }
+  
+  /**
+   * Carries out some actions for when the game is over.
+   * 
+   */
+  function gameOver() {
+    // Game over actions here.
+  }
 
   /**
    * Defines a class used to create the grid on which the game is played.
@@ -375,7 +383,7 @@ var game = function() {
       this.move();
 
       var t = this;
-      setTimeout(function () {
+      timer = setTimeout(function () {
         // Check that the shape can 'fall'.
         if (grid.moveAllowed(t.x, t.y + 1, t.shapeCoors)) {
           t.y += 1;
@@ -383,6 +391,12 @@ var game = function() {
         }
         else {
           t.fix(grid);
+          if (t.y === 0) {
+            // This is the end game situation where a piece is already fixed
+            // when it hasn't even left the top of the screen.
+            gameOver();
+            clearTimeout(timer);
+          }
         }
       }, timeOutInterval);
     }
