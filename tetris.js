@@ -228,7 +228,7 @@ var game = function() {
       }
       
       // Loop through the complete rows and remove them one at a time.
-      if (completeRows > 0) {
+      if (completeRows.length > 0) {
         for(i = 0; i < completeRows.length; i++) {  
           // Remove the complete row from the grid.
           this.grid.splice(completeRows[i], 1);
@@ -261,9 +261,10 @@ var game = function() {
       // Set the x and y coordinates of where the sprite should be placed.
       fossilSprite.x = 0;
       fossilSprite.y = cellSide;
-      // Add the sprite to the stage. When the next shape is rendered, the stage
-      // will also get re-rendered.
+      // Add the sprite to the stage.
       stage.addChild(fossilSprite);
+      // Re-render the stage.
+      renderer.render(stage);
     };
   };
 
