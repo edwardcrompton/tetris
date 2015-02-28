@@ -450,3 +450,12 @@ var game = function() {
 
 // Start the game.
 var g = new game();
+
+// Next:
+// Investigate and fix a bug where shapes suddenly cannot move left. Is it perhaps
+// that the grid is not getting updated absolutely correctly?
+// Shapes seem to stop getting fossilised when this happens. Perhaps just pause the game
+// when it happens and look at the grid.
+// Introduce the last few shapes.
+// Randomisation should work better. Prevent colours from being used twice in a
+// row.
