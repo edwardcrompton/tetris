@@ -28,7 +28,7 @@ var game = function() {
   var gridRows = 24; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
-  var timeOutInterval = 500;
+  var timeOutInterval = 100;
 
   var tetrinosConfig = [
     [
@@ -102,6 +102,12 @@ var game = function() {
    */
   function gameOver() {
     // Game over actions here.
+    var text = new PIXI.Text("GAME OVER", {font: "bold italic 60px Arvo", fill: "#000000", align: "center", stroke: "#ffffff", strokeThickness: 5})
+    text.anchor.x = text.anchor.y = 0.5;
+    text.position.x = stageWidth / 2;
+    text.position.y = stageHeight / 2;
+    stage.addChild(text);
+    renderer.render(stage);
   }
 
   /**
