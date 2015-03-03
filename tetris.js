@@ -28,7 +28,7 @@ var game = function() {
   var gridRows = 24; // The number of cells on the game grid.
 
   var stageOrigin = [0,0];
-  var timeOutInterval = 100;
+  var timeOutInterval = 500;
 
   var tetrinosConfig = [
     [
@@ -67,12 +67,34 @@ var game = function() {
 
   // Stage dimensions.
   var stageWidth = cellSide * gridCols;
-  var stageHeight = cellSide * gridRows;
+  // We're going to add a couple of rows of non-playable space at the bottom
+  // of the stage for game scores, etc.
+  var stageHeight = cellSide * (gridRows + 2);
 
   // Create a renderer instance.
-  //var renderer = PIXI.autoDetectRenderer(stageWidth, stageHeight);
+  // We're going to work with an HTML5 canvas even though WebGL is available.
   var renderer = new PIXI.CanvasRenderer(stageWidth, stageHeight);
 
+  // Initialise the scoreboard.
+  var score = 0;
+  var level = 1;
+  var pointsForARow = 1;
+
+  /**
+   * 
+   * @param {type} cols
+   * @param {type} rows
+   * @returns {Array}
+   */
+  function renderScore(score) {
+    // Game over actions here.
+    var text = new PIXI.Text("ROWS COLLAPSED: " + score, {font: "bold italic 22px Arvo", fill: "#000000", align: "center", stroke: "#ffffff", strokeThickness: 2})
+    text.position.x = 10;
+    text.position.y = stageHeight - 36;
+    stage.addChild(text);
+    renderer.render(stage);
+  }
+  
   /**
    * Initialises a two dimensional array of specified dimensions.
    * 
@@ -109,6 +131,7 @@ var game = function() {
     stage.addChild(text);
     renderer.render(stage);
   }
+  
 
   /**
    * Defines a class used to create the grid on which the game is played.
@@ -274,6 +297,9 @@ var game = function() {
           // data stored in the grid at the moment to re-render the correct 
           // colours.
           this.renderFossils(completeRows[i] + i);
+          // Up the score.
+          score += pointsForARow;
+          renderScore(score);
         }
       }
     };
@@ -450,6 +476,8 @@ var game = function() {
   
   // Create the grid that will hold the pieces.
   var grid = new gameGrid();
+  // Show the score.
+  renderScore(score);
   // Drop a new piece into to the game.
   dropPiece();
 
@@ -500,3 +528,13 @@ var g = new game();
 // when it happens and look at the grid.
 // Randomisation should work better. Prevent colours from being used twice in a
 // row.
+// The pieces should fall faster as the score goes up, otherwise it's a bit 
+// boring.
+// It needs to design and font TLC. Copy from somewhere?
+// The score needs to be re-rendered as it goes up.
+// Intro screen and start / refresh keys
+// Make a list of challenges faced during the project
+// - How the virtual grid was used to keep track of where everything is.
+// - How to re-render the shapes after a row has been collapsed (realised this
+// only needs to be cosmetic.
+// - Using OOP.
