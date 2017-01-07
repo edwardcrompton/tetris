@@ -9,4 +9,5 @@ Keys
 ----
 
 Use the left, right and down keys to place the shapes.
+
 Use spacebar to spin the shape.
